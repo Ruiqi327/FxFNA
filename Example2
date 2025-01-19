@@ -1,0 +1,107 @@
+%Code runs on MATLAB R2022b, copyright@Ruiqi Zhou.
+%2025.1.19.
+
+clear
+clc
+
+tic
+
+%***********iteration settings**************
+step_length=0.00001;
+task_time=1;
+count=floor(task_time/step_length+2);
+tspan=0:step_length:task_time;
+
+c1=1;
+c2=1;
+alpha=0.6;
+beta=1.4;
+u1=1000;
+u2=0.005;
+aver_time = zeros(4,10);
+dimen_label=1;
+
+for dimension=20:20:200
+b=ones(dimension,1);
+y=zeros(dimension,1);
+x=zeros(dimension,1);
+nabla_x=zeros(dimension,1);
+nabla_xx=zeros(dimension,dimension);
+nabla_xt=zeros(dimension,1);
+y_ones=ones(dimension,1);
+%********************************
+runtime=zeros(10,4,10);
+
+for k=1:1:4
+for j=1:1:12
+tic
+for i=1:1:count
+t=(i-1)*step_length;
+y=sin(t).*y_ones;
+
+if k==1
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(dimension)+u1*u2*exp(u2*norm(x-b)^2).*eye(dimension)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=-cos(t).*y_ones;
+
+error=0.5*norm(nabla_x)^2;
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+c2*error^beta+nabla_x'*nabla_xt);
+x=x+dx*step_length;
+end
+
+if k==2
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(dimension)+u1*u2*exp(u2*norm(x-b)^2).*eye(dimension)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=-cos(t).*y_ones;
+
+error=0.5*norm(nabla_x)^2;
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+nabla_x'*nabla_xt);
+x=x+dx*step_length;
+end
+
+if k==3
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(dimension)+u1*u2*exp(u2*norm(x-b)^2).*eye(dimension)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=-cos(t).*y_ones;
+
+error=0.5*norm(nabla_x)^2;
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+nabla_x'*nabla_xt);
+x=x+dx*step_length;
+end
+
+if k==4
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(dimension)+u1*u2*exp(u2*norm(x-b)^2).*eye(dimension)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=-cos(t).*y_ones;
+dx=-(nabla_xx)\(c1*nabla_x/norm(nabla_x)^0.4+c2*nabla_x/norm(nabla_x)^(-0.6)+nabla_xt);
+x=x+dx*step_length;
+end
+end
+runtime(j,k)=toc;
+end
+end
+
+%Remove the maximum, minimum value and calculate the average.
+for col = 1:4
+    col_data = runtime(:, col);
+    col_data(col_data == max(col_data)) = [];
+    col_data(col_data == min(col_data)) = [];
+    aver_time(col,dimen_label) = mean(col_data);
+end
+dimen_label=dimen_label+1;
+end
+
+disp(aver_time)
+labels = {'20', '40', '60', '80', '100','120', '140', '160', '180', '200'};
+figure('Position', [50, 50, 800, 300]);
+bar(aver_time', 'grouped');
+set(gca, 'XTickLabel', labels);
+set(gca, 'XTick', 1:10);
+set(gca, 'LooseInset', [1,1,0,1]);
+set(gca, 'FontName', 'Times New Roman', 'FontSize',14,'LineWidth', 1.5);
+
+xlabel('Dimensions');
+ylabel('Runtime (seconds)')
+set(gca, 'XTickLabelRotation', 45);
+grid on;
+legend('FxFNA', '[17]', '[20]', '[14]');
