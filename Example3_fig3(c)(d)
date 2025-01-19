@@ -1,0 +1,76 @@
+%Code runs on MATLAB R2022b, copyright@Ruiqi Zhou.
+%2025.1.19.
+
+clear
+clc
+
+%***********iteration settings**************
+step_length=0.000001;  %0.000001 for (c) and 0.0000001 for (d).
+task_time=10;
+if step_length==0.00001
+    count=floor(task_time/step_length+2);
+else
+    count=floor(task_time/step_length+1);
+end
+tspan=0:step_length:task_time;
+
+c1=1;
+c2=1;
+beta=1.4;
+u1=1000;
+u2=0.005;
+b=[1;1];
+
+dimension=2;
+
+dx_plot=zeros(count,2);
+
+tic
+%********************************
+for k=1:1:2
+  if k==1
+      alpha=0.4;
+  end
+  if k==2
+      alpha=0.6;
+  end
+y=zeros(dimension,1);
+x=zeros(dimension,1);
+nabla_x=zeros(dimension,1);
+nabla_xx=zeros(dimension,dimension);
+nabla_xt=zeros(dimension,1);
+for i=1:1:count
+    t=(i-1)*step_length;
+
+y=[cos(t);sin(t)];
+
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(2)+u1*u2*exp(u2*norm(x-b)^2).*eye(2)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=[sin(t);-cos(t)];
+
+error=0.5*norm(nabla_x)^2;
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+c2*error^beta+nabla_x'*nabla_xt);
+x=x+dx*step_length;
+dx_plot(i,k)=norm(dx);
+end
+end
+toc
+figure
+
+subplot('Position', [0.06, 0.56, 0.92, 0.4]); 
+plot(tspan', dx_plot(:,1), 'r', 'LineWidth', 1.5);
+hold on;
+grid on;
+legend({'$\alpha=0.4$'}, 'Interpreter', 'latex', 'FontSize', 18, 'Location', 'NorthEast');
+set(gca, 'LooseInset', [0,0,0,0]);
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 18, 'LineWidth', 2);
+
+subplot('Position', [0.06, 0.08, 0.92, 0.4]); 
+plot(tspan', dx_plot(:,2), 'r', 'LineWidth', 1.5);
+axis equal
+hold on;
+grid on;
+text(8, 0.5, 'time (s)', 'FontSize', 18);
+legend({'$\alpha=0.6$'}, 'Interpreter', 'latex', 'FontSize', 18, 'Location', 'NorthEast');
+set(gca, 'LooseInset', [0,0,0,0]);
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 18, 'LineWidth', 2);
