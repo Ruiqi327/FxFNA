@@ -1,0 +1,74 @@
+%Code runs on MATLAB R2022b, copyright@Ruiqi Zhou.
+%2025.1.19.
+
+clear
+clc
+
+tic
+%***********iteration settings**************
+step_length=0.00001;
+task_time=15;
+count=floor(task_time/step_length+2);
+tspan=0:step_length:task_time;
+
+c1=1;
+c2=1;
+alpha=0.6;
+beta=1.4;
+u1=1000;
+u2=0.005;
+b=[1;1];
+
+dimension=2;
+
+
+nabla_x_plot=zeros(count,3);
+dx_plot=zeros(count,1);
+%********************************
+for k=1:1:3
+y=zeros(dimension,1);
+x=zeros(dimension,1);
+nabla_x=zeros(dimension,1);
+nabla_xx=zeros(dimension,dimension);
+nabla_xt=zeros(dimension,1);
+for i=1:1:count
+    t=(i-1)*step_length;
+
+y=[cos(t);sin(t)];
+
+nabla_x=x-y+u1*u2*exp(u2*norm(x-b)^2).*(x-b);
+nabla_xx=eye(2)+u1*u2*exp(u2*norm(x-b)^2).*eye(2)+2*u1*u2^2*exp(0.005*norm(x-b)^2).*((x-b)*(x-b)');
+nabla_xt=[sin(t);-cos(t)];
+
+error=0.5*norm(nabla_x)^2;
+if k==1
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+c2*error^beta+nabla_x'*nabla_xt);
+end
+if k==2
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error+nabla_x'*nabla_xt);
+end
+if k==3
+dx=-(nabla_xx*nabla_x)/(norm(nabla_xx*nabla_x)^2)*(c1*error^alpha+nabla_x'*nabla_xt);
+end
+
+x=x+dx*step_length;
+
+nabla_x_plot(i,k)=log10(norm(nabla_x));
+%dx_plot(i,)=norm(dx);
+end
+end
+
+
+figure
+for k=1:1:3
+plot(tspan',nabla_x_plot(:,k),'LineWidth',2);
+hold on
+end
+grid on;
+set(gca, 'LooseInset', [0,0,0,0]);
+set(gca, 'FontName', 'Times New Roman', 'FontSize',18,'LineWidth', 1.5);
+text(8,-7,'time (s)','FontSize',14);
+legend({'FxFNA','[17]','[20]'}, 'FontSize', 18, 'location', 'NorthEast');
+
+
+
