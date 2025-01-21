@@ -1,6 +1,4 @@
-# FxFNA
-Codes of "FxFNA: Fixed-Time Fast Neurodynamic Approach for Time-Varying Convex Optimization".
-
+# FxFNA: Fixed-Time Fast Neurodynamic Approach for Time-Varying Convex Optimization
 This paper investigates time-varying convex optimization problems (TVCOPs). We propose a fixed-time convergent fast neurodynamic approach (FxFNA), which avoids
 inverting the Hessian matrices of TVCOPs and possesses lower computational complexity. Moreover, it is proved that FxFNA
 exhibits fixed-time convergence characteristic, whose settling
